@@ -25,8 +25,8 @@ const PrimaryNavbar = () => {
             style={{maxHeight: "100px"}}
             navbarScroll
           >
-            <Nav.Link href="#action1">Home</Nav.Link>
-            <Nav.Link href="#action2">Link</Nav.Link>
+            <Nav.Link href="/">Home</Nav.Link>
+            <Nav.Link href="/project">Projects</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>

@@ -130,7 +130,9 @@ const Register = () => {
               <Row>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="username">Username</Form.Label>
+                    <Form.Label htmlFor="username">
+                      <i className="bi bi-person-circle fs-4"></i> Username
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter your username"
@@ -141,7 +143,9 @@ const Register = () => {
                 </Col>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="name">Full Name</Form.Label>
+                    <Form.Label htmlFor="name">
+                      <i className="bi bi-person-badge-fill fs-4"></i> Full Name
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter your full name"
@@ -154,7 +158,9 @@ const Register = () => {
               <Row>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="email">Email Address</Form.Label>
+                    <Form.Label htmlFor="email">
+                      <i className="bi bi-envelope fs-4"></i> Email Address
+                    </Form.Label>
                     <Form.Control
                       type="email"
                       placeholder="Enter your email address"
@@ -165,7 +171,9 @@ const Register = () => {
                 </Col>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="phone">Phone Number</Form.Label>
+                    <Form.Label htmlFor="phone">
+                      <i className="bi bi-telephone fs-4"></i> Phone Number
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter your phone number"
@@ -176,7 +184,9 @@ const Register = () => {
                 </Col>
               </Row>
               <Form.Group className="mb-3">
-                <Form.Label htmlFor="password">Password</Form.Label>
+                <Form.Label htmlFor="password">
+                  <i className="bi bi-lock fs-4"></i> Password
+                </Form.Label>
                 <Form.Control
                   type="password"
                   placeholder="Enter your password"
@@ -187,7 +197,9 @@ const Register = () => {
               <Row>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="address">Address</Form.Label>
+                    <Form.Label htmlFor="address">
+                      <i className="bi bi-geo-alt fs-4"></i> Address
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter your address"
@@ -198,7 +210,9 @@ const Register = () => {
                 </Col>
                 <Col>
                   <Form.Group className="mb-3">
-                    <Form.Label htmlFor="country">Country</Form.Label>
+                    <Form.Label htmlFor="country">
+                      <i className="bi bi-map fs-4"></i> Country
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       placeholder="Enter your country"
@@ -209,7 +223,7 @@ const Register = () => {
                 </Col>
               </Row>
               <Button variant="primary" type="submit" disabled={isMatch}>
-                Register
+                <i className="bi bi-people fs-4"></i> Register
               </Button>
               {error && (
                 <p

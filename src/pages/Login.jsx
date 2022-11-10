@@ -50,7 +50,9 @@ const Login = () => {
             <h2 className="mb-4">Login to ToDo Clone</h2>
             <Form onSubmit={handleLogin}>
               <Form.Group className="mb-3">
-                <Form.Label htmlFor="email">Email Address</Form.Label>
+                <Form.Label htmlFor="email">
+                  <i className="bi bi-envelope fs-4"></i> Email Address
+                </Form.Label>
                 <Form.Control
                   type="email"
                   placeholder="Enter your email address"
@@ -59,7 +61,9 @@ const Login = () => {
                 ></Form.Control>
               </Form.Group>
               <Form.Group className="mb-3">
-                <Form.Label htmlFor="password">Password</Form.Label>
+                <Form.Label htmlFor="password">
+                  <i className="bi bi-lock fs-4"></i> Password
+                </Form.Label>
                 <Form.Control
                   type="password"
                   placeholder="Enter your password"
@@ -68,7 +72,7 @@ const Login = () => {
                 ></Form.Control>
               </Form.Group>
               <Button variant="primary" type="submit" disabled={isEmpty}>
-                Login
+                <i className="bi bi-people fs-4"></i> Login
               </Button>
               {error && (
                 <p

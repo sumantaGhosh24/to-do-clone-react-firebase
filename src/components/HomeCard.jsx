@@ -1,8 +1,20 @@
-const HomeCard = () => {
+import {Button, Card} from "react-bootstrap";
+import {Link} from "react-router-dom";
+
+const HomeCard = ({heading, subHeading, value, linkTo}) => {
   return (
-    <div>
-      <p>HomeCard</p>
-    </div>
+    <>
+      <Card border="light" style={{width: "18rem"}} className="shadow-lg">
+        <Card.Header>{heading}</Card.Header>
+        <Card.Body>
+          <Card.Title>{subHeading}</Card.Title>
+          <Card.Text>{value}</Card.Text>
+          <Button variant="primary">
+            <Link to={linkTo}>Explore More</Link>
+          </Button>
+        </Card.Body>
+      </Card>
+    </>
   );
 };
 
