@@ -1,12 +1,6 @@
 import {useContext, useEffect, useState} from "react";
-import {
-  collection,
-  getDocs,
-  onSnapshot,
-  query,
-  where,
-} from "firebase/firestore";
-import {Col, Container, Row} from "react-bootstrap";
+import {collection, getDocs, query, where} from "firebase/firestore";
+import {Button, Col, Container, Row} from "react-bootstrap";
 
 import {
   PrimaryNavbar,
@@ -22,6 +16,7 @@ const Home = () => {
   const [project, setProject] = useState(0);
   const [favoriteProject, setFavoriteProject] = useState(0);
   const [error, setError] = useState("");
+  const [openSidebar, setOpenSidebar] = useState(false);
 
   const {currentUser} = useContext(AuthContext);
 
@@ -30,21 +25,21 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "projects"),
-      (snapshot) => {
-        let list = [];
-        snapshot.docs.forEach(
-          (doc) => {
-            list.push({id: doc.id});
-            setProject(list.length);
-          },
-          (error) => {
-            setError(error);
-          }
-        );
-      }
-    );
+    const unsubscribe = async () => {
+      const projectRef = collection(db, "projects");
+      const q = query(projectRef, where("user", "==", currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      let list = [];
+      querySnapshot.forEach(
+        (doc) => {
+          list.push({id: doc.id});
+          setProject(list.length);
+        },
+        (error) => {
+          setError(error);
+        }
+      );
+    };
     return () => {
       unsubscribe();
     };
@@ -52,8 +47,12 @@ const Home = () => {
 
   useEffect(() => {
     const unsubscribe = async () => {
-      const projectsRef = collection(db, "users", currentUser.uid, "projects");
-      const q = query(projectsRef, where("favorite", "==", true));
+      const projectsRef = collection(db, "projects");
+      const q = query(
+        projectsRef,
+        where("user", "==", currentUser.uid),
+        where("favorite", "==", true)
+      );
       const querySnapshot = await getDocs(q);
       let list = [];
       querySnapshot.forEach(
@@ -74,26 +73,53 @@ const Home = () => {
   return (
     <>
       <PrimaryNavbar />
-      <Sidebar />
+      <Sidebar openSidebar={openSidebar} />
+      <Button
+        variant="primary"
+        size="lg"
+        style={{
+          position: "fixed",
+          left: openSidebar ? 300 : 0,
+          zIndex: "99999",
+          marginTop: "20px",
+          marginLeft: "20px",
+          transitionProperty: "all",
+          transitionDuration: ".5s",
+          transitionTimingFunction: "ease-in-out",
+        }}
+        onClick={() => setOpenSidebar(!openSidebar)}
+      >
+        {openSidebar ? (
+          <i className="bi bi-x-lg"></i>
+        ) : (
+          <i className="bi bi-list"></i>
+        )}
+      </Button>
       {error && <TopAlert message={error} />}
-      <Container>
-        <Profile />
+      <Container className="mt-4">
         <Row>
-          <Col>
-            <HomeCard
-              heading="Total Project"
-              subHeading="The total number of project created by user"
-              value={project}
-              linkTo="/projects"
-            />
+          <Col md="6">
+            <Profile />
           </Col>
-          <Col>
-            <HomeCard
-              heading="Favorite Project"
-              subHeading="The total number of favorite project create by user"
-              value={favoriteProject}
-              linkTo="/projects"
-            />
+          <Col md="6">
+            <Row>
+              <Col className="mb-4">
+                <HomeCard
+                  heading="Total Project"
+                  subHeading="The total number of project created by user"
+                  value={project}
+                  linkTo="/projects"
+                />
+              </Col>
+              <Col>
+                <HomeCard
+                  heading="Favorite Project"
+                  subHeading="The total number of favorite project create by user"
+                  value={favoriteProject}
+                  linkTo="/projects"
+                />
+              </Col>
+            </Row>
           </Col>
         </Row>
       </Container>

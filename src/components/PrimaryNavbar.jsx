@@ -1,23 +1,26 @@
-import {useContext, useEffect, useState} from "react";
+import {useContext} from "react";
 import {Link} from "react-router-dom";
-import {doc, onSnapshot} from "firebase/firestore";
-import {
-  Button,
-  Container,
-  Form,
-  Nav,
-  Navbar,
-  NavDropdown,
-} from "react-bootstrap";
+import {Button, Container, Nav, Navbar} from "react-bootstrap";
 
 import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
 
 const PrimaryNavbar = () => {
+  const {dispatch} = useContext(AuthContext);
+
   return (
-    <Navbar bg="primary" expand="lg">
-      <Container fluid>
-        <Navbar.Brand href="#">Navbar scroll</Navbar.Brand>
+    <Navbar bg="primary" className="navbar-dark" expand="lg">
+      <Container>
+        <Link
+          to="/"
+          style={{color: "white", fontSize: "24px", fontWeight: "bold"}}
+        >
+          <img
+            src="/logo.png"
+            alt="logo"
+            style={{height: "35px", width: "35px", marginRight: "5px"}}
+          />{" "}
+          ToDo Clone
+        </Link>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -25,8 +28,22 @@ const PrimaryNavbar = () => {
             style={{maxHeight: "100px"}}
             navbarScroll
           >
-            <Nav.Link href="/">Home</Nav.Link>
-            <Nav.Link href="/project">Projects</Nav.Link>
+            <Link to="/" className="text-white my-2 mx-2">
+              <i className="bi bi-house fs-4 me-2"></i>
+              Home
+            </Link>
+            <Link to="/projects" className="text-white my-2 mx-2">
+              <i className="bi bi-folder fs-4 me-2"></i>
+              Projects
+            </Link>
+            <Button
+              variant="outline-light"
+              className="my-2 mx-2"
+              style={{width: "fit-content"}}
+              onClick={() => dispatch({type: "LOGOUT"})}
+            >
+              <i className="bi bi-box-arrow-right fs-4 me-2"></i> SIGN OUT
+            </Button>
           </Nav>
         </Navbar.Collapse>
       </Container>

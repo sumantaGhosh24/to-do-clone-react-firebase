@@ -10,7 +10,9 @@ const HomeCard = ({heading, subHeading, value, linkTo}) => {
           <Card.Title>{subHeading}</Card.Title>
           <Card.Text>{value}</Card.Text>
           <Button variant="primary">
-            <Link to={linkTo}>Explore More</Link>
+            <Link to={linkTo} style={{color: "white"}}>
+              Explore More
+            </Link>
           </Button>
         </Card.Body>
       </Card>

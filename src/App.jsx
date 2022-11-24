@@ -4,24 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {AuthContext} from "./context/AuthContext";
-import {
-  Home,
-  Login,
-  NewProject,
-  NewSub,
-  NewTask,
-  NotFound,
-  Project,
-  Projects,
-  Register,
-  Sub,
-  Subs,
-  Task,
-  Tasks,
-  UpdateProject,
-  UpdateSub,
-  UpdateTask,
-} from "./pages";
+import {Home, Login, NotFound, Project, Projects, Register} from "./pages";
 
 export const App = () => {
   const {currentUser} = useContext(AuthContext);
@@ -80,7 +63,7 @@ export const App = () => {
                   </RequireAuth>
                 }
               />
-              <Route
+              {/* <Route
                 path="new"
                 element={
                   <RequireAuth>
@@ -95,75 +78,7 @@ export const App = () => {
                     <UpdateProject />
                   </RequireAuth>
                 }
-              />
-            </Route>
-            <Route path="tasks">
-              <Route
-                index
-                element={
-                  <RequireAuth>
-                    <Tasks />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path=":taskId"
-                element={
-                  <RequireAuth>
-                    <Task />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="new"
-                element={
-                  <RequireAuth>
-                    <NewTask />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="update/:taskId"
-                element={
-                  <RequireAuth>
-                    <UpdateTask />
-                  </RequireAuth>
-                }
-              />
-            </Route>
-            <Route path="subs">
-              <Route
-                index
-                element={
-                  <RequireAuth>
-                    <Subs />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path=":subId"
-                element={
-                  <RequireAuth>
-                    <Sub />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="new"
-                element={
-                  <RequireAuth>
-                    <NewSub />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="update/:subId"
-                element={
-                  <RequireAuth>
-                    <UpdateSub />
-                  </RequireAuth>
-                }
-              />
+              /> */}
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
