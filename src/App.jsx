@@ -4,7 +4,16 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {AuthContext} from "./context/AuthContext";
-import {Home, Login, NotFound, Project, Projects, Register} from "./pages";
+import {
+  Home,
+  Login,
+  NotFound,
+  Project,
+  Projects,
+  Register,
+  Labels,
+  Label,
+} from "./pages";
 
 export const App = () => {
   const {currentUser} = useContext(AuthContext);
@@ -46,6 +55,24 @@ export const App = () => {
                 </GuestAuth>
               }
             />
+            <Route path="labels">
+              <Route
+                index
+                element={
+                  <RequireAuth>
+                    <Labels />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path=":labelId"
+                element={
+                  <RequireAuth>
+                    <Label />
+                  </RequireAuth>
+                }
+              />
+            </Route>
             <Route path="projects">
               <Route
                 index
@@ -63,22 +90,6 @@ export const App = () => {
                   </RequireAuth>
                 }
               />
-              {/* <Route
-                path="new"
-                element={
-                  <RequireAuth>
-                    <NewProject />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="update/:projectId"
-                element={
-                  <RequireAuth>
-                    <UpdateProject />
-                  </RequireAuth>
-                }
-              /> */}
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

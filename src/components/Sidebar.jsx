@@ -1,17 +1,10 @@
 import {useContext, useEffect, useState} from "react";
-import {
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-  where,
-  query,
-} from "firebase/firestore";
+import {collection, doc, onSnapshot, where, query} from "firebase/firestore";
 import {Button} from "react-bootstrap";
+import {Link} from "react-router-dom";
 
 import {AuthContext} from "../context/AuthContext";
 import {db} from "../firebase";
-import {Link} from "react-router-dom";
 
 const Sidebar = ({openSidebar}) => {
   const [user, setUser] = useState({});
@@ -31,23 +24,18 @@ const Sidebar = ({openSidebar}) => {
 
   useEffect(() => {
     const unsubscribe = async () => {
-      const projectRef = collection(db, "projects");
       const q = query(
-        projectRef,
+        collection(db, "projects"),
         where("user", "==", currentUser.uid),
         where("favorite", "==", false)
       );
-      const querySnapshot = await getDocs(q);
-      let list = [];
-      querySnapshot.forEach(
-        (doc) => {
+      onSnapshot(q, (querySnapshot) => {
+        let list = [];
+        querySnapshot.forEach((doc) => {
           list.push({id: doc.id, ...doc.data()});
           setProject(list);
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
+        });
+      });
     };
     return () => {
       unsubscribe();
@@ -56,23 +44,18 @@ const Sidebar = ({openSidebar}) => {
 
   useEffect(() => {
     async function unsubscribe() {
-      const projectRef = collection(db, "projects");
       const q = query(
-        projectRef,
+        collection(db, "projects"),
         where("user", "==", currentUser.uid),
         where("favorite", "==", true)
       );
-      const querySnapshot = await getDocs(q);
-      let list = [];
-      querySnapshot.forEach(
-        (doc) => {
+      onSnapshot(q, (querySnapshot) => {
+        let list = [];
+        querySnapshot.forEach((doc) => {
           list.push({id: doc.id, ...doc.data()});
           setFavoriteProject(list);
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
+        });
+      });
     }
     return () => {
       unsubscribe();
@@ -188,6 +171,17 @@ const Sidebar = ({openSidebar}) => {
           }}
         >
           <Link
+            to="/labels"
+            style={{
+              marginBlock: "10px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              color: "white",
+            }}
+          >
+            All Labels
+          </Link>
+          <Link
             to="/projects"
             style={{
               marginBlock: "10px",
@@ -232,7 +226,7 @@ const Sidebar = ({openSidebar}) => {
                   textTransform: "capitalize",
                 }}
               >
-                {item.name}
+                {item.title}
               </p>
             </Link>
           ))}
@@ -270,7 +264,7 @@ const Sidebar = ({openSidebar}) => {
                   textTransform: "capitalize",
                 }}
               >
-                {item.name}
+                {item.title}
               </p>
             </Link>
           ))}

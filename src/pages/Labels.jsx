@@ -1,4 +1,3 @@
-import React, {useContext, useEffect, useState} from "react";
 import {
   collection,
   deleteDoc,
@@ -10,32 +9,31 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
+import React, {useContext, useState, useEffect} from "react";
 import {Button, Col, Container, Row, Table} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
 import {
-  AddProject,
-  LabelBadge,
+  AddLabel,
   PrimaryNavbar,
   Sidebar,
   TopAlert,
-  UpdateProject,
+  UpdateLabel,
 } from "../components";
+import {AuthContext} from "../context/AuthContext";
+import {db} from "../firebase";
 
-const Projects = () => {
-  const [project, setProject] = useState([]);
+const Labels = () => {
   const [labels, setLabels] = useState([]);
   const [error, setError] = useState("");
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
-
   const navigate = useNavigate();
 
+  const {currentUser} = useContext(AuthContext);
+
   useEffect(() => {
-    document.title = "ToDo Clone - Projects";
+    document.title = "ToDo Clone - Labels";
   }, []);
 
   useEffect(() => {
@@ -58,42 +56,18 @@ const Projects = () => {
     };
   }, [currentUser.uid]);
 
-  useEffect(() => {
-    const unsubscribe = async () => {
-      const q = query(
-        collection(db, "projects"),
-        where("user", "==", currentUser.uid),
-        orderBy("timestamp")
-      );
-      onSnapshot(q, (querySnapshot) => {
-        let list = [];
-        querySnapshot.forEach((doc) => {
-          list.push({id: doc.id, ...doc.data()});
-          setProject(list);
-        });
-      });
-    };
-    return () => {
-      unsubscribe();
-    };
-  });
-
   const handleDelete = async (id) => {
     try {
-      const batch1 = writeBatch(db);
-      const q1 = query(
-        collection(db, "tasks"),
-        where("projectId", "==", id),
-        where("user", "==", currentUser.uid)
-      );
-      const querySnapshot1 = await getDocs(q1);
-      if (!querySnapshot1.empty) {
-        querySnapshot1.forEach((doc) => {
-          batch1.delete(doc.ref);
+      const q = query(collection(db, "projects"), where("label", "==", id));
+      const querySnapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          batch.update(doc.ref, {label: "default"});
         });
-        batch1.commit();
+        batch.commit();
       }
-      await deleteDoc(doc(db, "projects", id));
+      await deleteDoc(doc(db, "labels", id));
     } catch (error) {
       setError(error.message);
     }
@@ -127,7 +101,7 @@ const Projects = () => {
       {error && <TopAlert message={error} />}
       <Container className="mt-4">
         <Row className="mb-5">
-          <AddProject />
+          <AddLabel />
         </Row>
         <Row>
           <Col md={{span: 10, offset: 1}}>
@@ -138,22 +112,20 @@ const Projects = () => {
                   <th>Title</th>
                   <th>Description</th>
                   <th>Color</th>
-                  <th>Favorite</th>
-                  <th>Label</th>
                   <th>Timestamp</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {project.length === 0 && (
+                {labels.length === 0 && (
                   <tr>
-                    <td colSpan={8}>
-                      You don't create a project yet, please create one to
-                      manage it.
+                    <td colSpan={6}>
+                      You don't create a label yet, please create one to manage
+                      it.
                     </td>
                   </tr>
                 )}
-                {project.map((item, index) => (
+                {labels.map((item, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{item.title}</td>
@@ -166,11 +138,7 @@ const Projects = () => {
                           background: item.color,
                           borderRadius: 10,
                         }}
-                      />
-                    </td>
-                    <td>{item.favorite ? "Favorite" : "Not Favorite"}</td>
-                    <td>
-                      <LabelBadge id={item.label} />
+                      ></div>
                     </td>
                     <td>
                       {new Date(item.timestamp?.seconds * 1000).toString()}
@@ -179,7 +147,7 @@ const Projects = () => {
                       <Button
                         variant="success"
                         className="me-2 mb-2"
-                        onClick={() => navigate(`/projects/${item.id}`)}
+                        onClick={() => navigate(`/labels/${item.id}`)}
                       >
                         <i className="bi bi-eye"></i>
                       </Button>
@@ -190,7 +158,7 @@ const Projects = () => {
                       >
                         <i className="bi bi-archive"></i>
                       </Button>
-                      <UpdateProject id={item.id} />
+                      <UpdateLabel id={item.id} />
                     </td>
                   </tr>
                 ))}
@@ -203,4 +171,4 @@ const Projects = () => {
   );
 };
 
-export default Projects;
+export default Labels;

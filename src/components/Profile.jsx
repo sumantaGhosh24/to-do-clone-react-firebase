@@ -1,9 +1,9 @@
 import {useContext, useEffect, useState} from "react";
 import {doc, onSnapshot} from "firebase/firestore";
+import {Button, Card} from "react-bootstrap";
 
 import {AuthContext} from "../context/AuthContext";
 import {db} from "../firebase";
-import {Button, Card} from "react-bootstrap";
 
 const Profile = () => {
   const [user, setUser] = useState({});

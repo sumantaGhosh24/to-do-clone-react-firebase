@@ -32,6 +32,9 @@ const PrimaryNavbar = () => {
               <i className="bi bi-house fs-4 me-2"></i>
               Home
             </Link>
+            <Link to="/labels" className="text-white my-2 mx-2">
+              <i className="bi bi-tag fs-4 me-2"></i> Labels
+            </Link>
             <Link to="/projects" className="text-white my-2 mx-2">
               <i className="bi bi-folder fs-4 me-2"></i>
               Projects

@@ -15,6 +15,7 @@ import {db} from "../firebase";
 const Home = () => {
   const [project, setProject] = useState(0);
   const [favoriteProject, setFavoriteProject] = useState(0);
+  const [labels, setLabels] = useState(0);
   const [error, setError] = useState("");
   const [openSidebar, setOpenSidebar] = useState(false);
 
@@ -36,7 +37,7 @@ const Home = () => {
           setProject(list.length);
         },
         (error) => {
-          setError(error);
+          setError(error.message);
         }
       );
     };
@@ -61,7 +62,28 @@ const Home = () => {
           setFavoriteProject(list.length);
         },
         (error) => {
-          setError(error);
+          setError(error.message);
+        }
+      );
+    };
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser.uid]);
+
+  useEffect(() => {
+    const unsubscribe = async () => {
+      const labelRef = collection(db, "labels");
+      const q = query(labelRef, where("user", "==", currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      let list = [];
+      querySnapshot.forEach(
+        (doc) => {
+          list.push({id: doc.id});
+          setLabels(list.length);
+        },
+        (error) => {
+          setError(error.message);
         }
       );
     };
@@ -103,7 +125,7 @@ const Home = () => {
           </Col>
           <Col md="6">
             <Row>
-              <Col className="mb-4">
+              <Col className="mx-3 my-3">
                 <HomeCard
                   heading="Total Project"
                   subHeading="The total number of project created by user"
@@ -111,12 +133,22 @@ const Home = () => {
                   linkTo="/projects"
                 />
               </Col>
-              <Col>
+              <Col className="mx-3 my-3">
                 <HomeCard
                   heading="Favorite Project"
                   subHeading="The total number of favorite project create by user"
                   value={favoriteProject}
                   linkTo="/projects"
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col className="mx-3 my-3">
+                <HomeCard
+                  heading="Total Label"
+                  subHeading="The total number of label created by user"
+                  value={labels}
+                  linkTo="/labels"
                 />
               </Col>
             </Row>
