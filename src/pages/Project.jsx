@@ -1,3 +1,4 @@
+import {useEffect, useState} from "react";
 import {
   collection,
   doc,
@@ -7,7 +8,6 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import React, {useContext, useEffect, useState} from "react";
 import {Button, Col, Container, Row} from "react-bootstrap";
 import {useParams} from "react-router-dom";
 
@@ -19,21 +19,21 @@ import {
   Task,
   TopAlert,
 } from "../components";
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Project = () => {
+  useEffect(() => {
+    document.title = "ToDo Clone - Project";
+  }, []);
+
   const [project, setProject] = useState({});
   const [openSidebar, setOpenSidebar] = useState(false);
   const [tasks, setTasks] = useState([]);
 
   const {projectId} = useParams();
 
-  const {currentUser} = useContext(AuthContext);
-
-  useEffect(() => {
-    document.title = "ToDo Clone - Project";
-  }, []);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = async () => {
@@ -50,9 +50,9 @@ const Project = () => {
     const unsubscribe = () => {
       const q = query(
         collection(db, "tasks"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         where("projectId", "==", projectId),
-        orderBy("timestamp")
+        orderBy("complete", true)
       );
       onSnapshot(q, (querySnapshot) => {
         let list = [];
@@ -65,7 +65,7 @@ const Project = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid, projectId]);
+  }, [firebase.authUser, projectId]);
 
   return (
     <>
@@ -92,25 +92,28 @@ const Project = () => {
           <i className="bi bi-list"></i>
         )}
       </Button>
-      {project.user === currentUser.uid ? (
+      {project.user === firebase.authUser ? (
         <>
           <Container className="mt-4">
             <Row className="mb-5">
-              <Col sm={{span: 8, offset: 2}} className="shadow-lg p-3">
+              <Col className="shadow-lg p-3 rounded">
                 <h2 className="fs-3 font-bold">{project.title}</h2>
                 <p className="fs-5">{project.description}</p>
                 <LabelBadge id={project.label} />
-                <p className="fs-5 text-muted">
+                <p className="fs-5 text-muted mt-3">
                   Timestamp:{" "}
                   {new Date(project.timestamp?.seconds * 1000).toString()}
                 </p>
               </Col>
             </Row>
             <Row className="mb-5">
-              <Col sm={{span: 8, offset: 2}}>
+              <Col>
                 <AddTask projectId={projectId} />
                 {tasks.length === 0 && (
-                  <h2 className="text-center mt-5">
+                  <h2
+                    className="text-center mt-5"
+                    style={{fontSize: "18px", fontWeight: "bold"}}
+                  >
                     This project have not any task.
                   </h2>
                 )}

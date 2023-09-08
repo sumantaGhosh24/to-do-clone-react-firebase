@@ -1,16 +1,17 @@
+import {useState} from "react";
 import {addDoc, collection, serverTimestamp} from "firebase/firestore";
-import React, {useContext, useState} from "react";
 import {Button, Col, Form, Modal} from "react-bootstrap";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const AddLabel = () => {
   const [show, setShow] = useState(false);
-  const [data, setData] = useState({});
-  const [error, setError] = useState("");
+  const [data, setData] = useState({title: "", description: "", color: ""});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -20,25 +21,33 @@ const AddLabel = () => {
     setData({...data, [id]: value});
   };
 
-  const isMatch = !data.title || !data.description || !data.color;
-
   const addLabel = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, "labels"), {
-        ...data,
-        timestamp: serverTimestamp(),
-        user: currentUser.uid,
-      });
-      setShow(false);
+      setLoading(true);
+      if (!data.title || !data.description || !data.color) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await addDoc(collection(db, "labels"), {
+          ...data,
+          timestamp: serverTimestamp(),
+          user: firebase.authUser,
+        });
+        setData({title: "", description: "", color: ""});
+        setLoading(false);
+        setShow(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <Col sm={{span: 8, offset: 4}}>
+    <>
+      <Col>
         <Button variant="primary" onClick={handleShow}>
           <i className="bi bi-pluse-lg me-2"></i> Create a Label
         </Button>
@@ -58,6 +67,9 @@ const AddLabel = () => {
                   placeholder="Enter label title"
                   onChange={handleInput}
                   id="title"
+                  name="title"
+                  value={data.title}
+                  required
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -70,6 +82,9 @@ const AddLabel = () => {
                   placeholder="Enter label description"
                   onChange={handleInput}
                   id="description"
+                  name="description"
+                  value={data.description}
+                  required
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -77,15 +92,23 @@ const AddLabel = () => {
                   <i className="bi bi-palette fs-4 me-2"></i>
                   Color
                 </Form.Label>
-                <Form.Control type="color" onChange={handleInput} id="color" />
+                <Form.Control
+                  type="color"
+                  onChange={handleInput}
+                  id="color"
+                  name="color"
+                  value={data.color}
+                  required
+                />
               </Form.Group>
               <Button
                 variant="primary"
                 type="submit"
-                disabled={isMatch}
+                disabled={loading}
                 className="me-3"
               >
-                <i className="bi bi-tag-fill fs-4"></i> Add Label
+                <i className="bi bi-tag-fill fs-4"></i>{" "}
+                {loading ? "Please Wait..." : "Add Label"}
               </Button>
               <Button variant="danger" onClick={handleClose}>
                 <i className="bi bi-trash3-fill fs-4"></i>
@@ -103,7 +126,7 @@ const AddLabel = () => {
           </Modal.Body>
         </Modal>
       </Col>
-    </div>
+    </>
   );
 };
 

@@ -1,13 +1,14 @@
+import {useState, useEffect} from "react";
 import {doc, getDoc, serverTimestamp, updateDoc} from "firebase/firestore";
-import React, {useState, useEffect} from "react";
 import {Button, Form, Modal} from "react-bootstrap";
 
-import {db} from "../firebase";
+import {db} from "../firebase/firebase";
 
 const UpdateLabel = ({id}) => {
   const [show, setShow] = useState(false);
   const [data, setData] = useState({});
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -30,19 +31,26 @@ const UpdateLabel = ({id}) => {
     setData({...data, [id]: value});
   };
 
-  const isMatch = !data.title || !data.description || !data.color;
-
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await updateDoc(
-        doc(db, "labels", data.id),
-        {...data, timestamp: serverTimestamp()},
-        {merge: true}
-      );
-      setShow(false);
+      setLoading(true);
+      if (!data.title || !data.description || !data.color) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError("");
+        await updateDoc(
+          doc(db, "labels", data.id),
+          {...data, timestamp: serverTimestamp()},
+          {merge: true}
+        );
+        setLoading(false);
+        setShow(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -67,6 +75,8 @@ const UpdateLabel = ({id}) => {
                 value={data.title}
                 onChange={handleInput}
                 id="title"
+                name="title"
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -79,6 +89,8 @@ const UpdateLabel = ({id}) => {
                 value={data.description}
                 onChange={handleInput}
                 id="description"
+                name="description"
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -90,15 +102,18 @@ const UpdateLabel = ({id}) => {
                 value={data.color}
                 onChange={handleInput}
                 id="color"
+                name="color"
+                required
               />
             </Form.Group>
             <Button
               variant="primary"
               type="submit"
-              disabled={isMatch}
+              disabled={loading}
               className="me-3"
             >
-              <i className="bi bi-tag-fill fs-4"></i> Update Label
+              <i className="bi bi-tag-fill fs-4"></i>{" "}
+              {loading ? "Please Wait..." : "Update Label"}
             </Button>
             <Button variant="danger" onClick={handleClose}>
               <i className="bi bi-trash3-fill fs-4"></i> Close

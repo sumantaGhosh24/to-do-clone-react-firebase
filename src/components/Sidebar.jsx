@@ -1,32 +1,43 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {collection, doc, onSnapshot, where, query} from "firebase/firestore";
 import {Button} from "react-bootstrap";
 import {Link} from "react-router-dom";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Sidebar = ({openSidebar}) => {
   const [user, setUser] = useState({});
   const [project, setProject] = useState([]);
   const [favoriteProject, setFavoriteProject] = useState([]);
 
-  const {currentUser, dispatch} = useContext(AuthContext);
+  const firebase = useFirebase();
+
+  const handleLogout = async () => {
+    try {
+      await firebase.handleLogout();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-      setUser(doc.data());
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "users", firebase.authUser),
+      (doc) => {
+        setUser(doc.data());
+      }
+    );
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = async () => {
       const q = query(
         collection(db, "projects"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         where("favorite", "==", false)
       );
       onSnapshot(q, (querySnapshot) => {
@@ -40,13 +51,13 @@ const Sidebar = ({openSidebar}) => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     async function unsubscribe() {
       const q = query(
         collection(db, "projects"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         where("favorite", "==", true)
       );
       onSnapshot(q, (querySnapshot) => {
@@ -60,7 +71,7 @@ const Sidebar = ({openSidebar}) => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   return (
     <section
@@ -94,11 +105,7 @@ const Sidebar = ({openSidebar}) => {
           }}
         >
           <img
-            src={
-              user.img
-                ? user.img
-                : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
-            }
+            src={user.imageUrl}
             alt={user.name}
             style={{
               height: "100px",
@@ -156,7 +163,7 @@ const Sidebar = ({openSidebar}) => {
           </h3>
           <Button
             variant="danger"
-            onClick={() => dispatch({type: "LOGOUT"})}
+            onClick={handleLogout}
             style={{marginBottom: "20px", marginTop: "20px"}}
           >
             <i className="bi bi-box-arrow-right fs-4 me-2"></i>
@@ -177,6 +184,7 @@ const Sidebar = ({openSidebar}) => {
               fontSize: "18px",
               fontWeight: "bold",
               color: "white",
+              textDecoration: "none",
             }}
           >
             All Labels
@@ -188,6 +196,7 @@ const Sidebar = ({openSidebar}) => {
               fontSize: "18px",
               fontWeight: "bold",
               color: "white",
+              textDecoration: "none",
             }}
           >
             All Project
@@ -207,7 +216,7 @@ const Sidebar = ({openSidebar}) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-around",
+                justifyContent: "flex-start",
                 width: "60%",
               }}
             >
@@ -217,6 +226,7 @@ const Sidebar = ({openSidebar}) => {
                   width: "15px",
                   borderRadius: "50px",
                   backgroundColor: `${item.color}`,
+                  marginRight: "10px",
                 }}
               ></p>
               <p
@@ -245,7 +255,7 @@ const Sidebar = ({openSidebar}) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-around",
+                justifyContent: "flex-start",
                 width: "60%",
               }}
             >
@@ -255,6 +265,7 @@ const Sidebar = ({openSidebar}) => {
                   width: "15px",
                   borderRadius: "50px",
                   backgroundColor: `${item.color}`,
+                  marginRight: "10px",
                 }}
               ></p>
               <p

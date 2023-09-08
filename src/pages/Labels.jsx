@@ -1,3 +1,4 @@
+import {useState, useEffect} from "react";
 import {
   collection,
   deleteDoc,
@@ -9,7 +10,6 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
-import React, {useContext, useState, useEffect} from "react";
 import {Button, Col, Container, Row, Table} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
 
@@ -20,27 +20,27 @@ import {
   TopAlert,
   UpdateLabel,
 } from "../components";
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Labels = () => {
+  useEffect(() => {
+    document.title = "ToDo Clone - Labels";
+  }, []);
+
   const [labels, setLabels] = useState([]);
   const [error, setError] = useState("");
   const [openSidebar, setOpenSidebar] = useState(false);
 
   const navigate = useNavigate();
 
-  const {currentUser} = useContext(AuthContext);
-
-  useEffect(() => {
-    document.title = "ToDo Clone - Labels";
-  }, []);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = async () => {
       const q = query(
         collection(db, "labels"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         orderBy("timestamp")
       );
       onSnapshot(q, (querySnapshot) => {
@@ -54,7 +54,7 @@ const Labels = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleDelete = async (id) => {
     try {
@@ -99,12 +99,12 @@ const Labels = () => {
         )}
       </Button>
       {error && <TopAlert message={error} />}
-      <Container className="mt-4">
+      <Container className="mt-5">
         <Row className="mb-5">
           <AddLabel />
         </Row>
         <Row>
-          <Col md={{span: 10, offset: 1}}>
+          <Col>
             <Table striped>
               <thead>
                 <tr>

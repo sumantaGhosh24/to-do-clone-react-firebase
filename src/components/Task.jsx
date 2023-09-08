@@ -1,3 +1,4 @@
+import {useEffect, useState} from "react";
 import {
   deleteDoc,
   doc,
@@ -5,10 +6,9 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import React, {useEffect, useState} from "react";
 import {Button} from "react-bootstrap";
 
-import {db} from "../firebase";
+import {db} from "../firebase/firebase";
 import TopAlert from "./TopAlert";
 import UpdateTask from "./UpdateTask";
 

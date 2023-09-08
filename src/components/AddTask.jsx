@@ -1,36 +1,49 @@
+import {useState} from "react";
 import {addDoc, collection, serverTimestamp} from "firebase/firestore";
-import React, {useContext, useState} from "react";
 import {Button, Col, Collapse, Form, Row} from "react-bootstrap";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const AddTask = ({projectId}) => {
-  const [data, setData] = useState({complete: false});
-  const [error, setError] = useState("");
+  const [data, setData] = useState({
+    complete: false,
+    title: "",
+    description: "",
+  });
+  const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
 
   const handleInput = (e) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
 
-  const isMatch = !data.title || !data.description;
-
   const addTask = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, "tasks"), {
-        ...data,
-        projectId: projectId,
-        user: currentUser.uid,
-        timestamp: serverTimestamp(),
-      });
-      setOpen(false);
+      setLoading(true);
+      if (!data.title || !data.description) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await addDoc(collection(db, "tasks"), {
+          ...data,
+          projectId: projectId,
+          user: firebase.authUser,
+          timestamp: serverTimestamp(),
+        });
+        setData({complete: false, title: "", description: ""});
+        setLoading(false);
+        setOpen(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -49,7 +62,10 @@ const AddTask = ({projectId}) => {
                   type="text"
                   placeholder="Enter task title"
                   onChange={handleInput}
+                  value={data.title}
                   id="title"
+                  name="title"
+                  required
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -60,16 +76,20 @@ const AddTask = ({projectId}) => {
                   type="text"
                   placeholder="Enter task description"
                   onChange={handleInput}
+                  value={data.description}
                   id="description"
+                  name="description"
+                  required
                 />
               </Form.Group>
               <Button
                 variant="primary"
                 type="submit"
-                disabled={isMatch}
+                disabled={loading}
                 className="me-2"
               >
-                <i className="bi bi-folder fs-4 me-2"></i> Add Task
+                <i className="bi bi-folder fs-4 me-2"></i>{" "}
+                {loading ? "Please Wait..." : "Add Task"}
               </Button>
               <Button
                 variant="danger"

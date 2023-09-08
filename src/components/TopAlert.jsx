@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {Alert, Button} from "react-bootstrap";
+import {Alert} from "react-bootstrap";
 
 const TopAlert = ({message}) => {
   const [show, setShow] = useState(true);
@@ -10,7 +10,7 @@ const TopAlert = ({message}) => {
         variant="danger"
         onClose={() => setShow(false)}
         dismissible
-        className="mx-5"
+        className="mx-5 mt-5"
       >
         <Alert.Heading>
           Something Went Wrong! Please Try Again Later!

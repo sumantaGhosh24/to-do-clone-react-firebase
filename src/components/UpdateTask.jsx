@@ -1,15 +1,14 @@
+import {useEffect, useState} from "react";
 import {doc, getDoc, serverTimestamp, updateDoc} from "firebase/firestore";
-import React, {useEffect, useState} from "react";
 import {Button, Form, Modal} from "react-bootstrap";
 
-import {db} from "../firebase";
+import {db} from "../firebase/firebase";
 
 const UpdateTask = ({id}) => {
   const [show, setShow] = useState(false);
   const [data, setData] = useState({});
   const [error, setError] = useState("");
-
-  const isMatch = !data.title || !data.description;
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = async () => {
@@ -35,14 +34,23 @@ const UpdateTask = ({id}) => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await updateDoc(
-        doc(db, "tasks", data.id),
-        {...data, timestamp: serverTimestamp()},
-        {merge: true}
-      );
-      setShow(false);
+      setLoading(true);
+      if (!data.title || !data.description) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await updateDoc(
+          doc(db, "tasks", data.id),
+          {...data, timestamp: serverTimestamp()},
+          {merge: true}
+        );
+        setLoading(false);
+        setShow(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -66,7 +74,9 @@ const UpdateTask = ({id}) => {
                 placeholder="Enter task title"
                 onChange={handleInput}
                 id="title"
+                name="title"
                 value={data.title}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -78,16 +88,19 @@ const UpdateTask = ({id}) => {
                 placeholder="Enter task description"
                 onChange={handleInput}
                 id="description"
+                name="description"
                 value={data.description}
+                required
               />
             </Form.Group>
             <Button
               variant="primary"
               type="submit"
-              disabled={isMatch}
+              disabled={loading}
               className="me-3"
             >
-              <i className="bi bi-tag-fill fs-4 me-2"></i> Update Task
+              <i className="bi bi-tag-fill fs-4 me-2"></i>{" "}
+              {loading ? "Please Wait..." : "Update Task"}
             </Button>
             <Button variant="danger" onClick={handleClose}>
               <i className="bi bi-trash3-fill fs-4 me-2"></i> Close

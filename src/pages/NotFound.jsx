@@ -22,7 +22,7 @@ const NotFound = () => {
           application.
         </p>
         <Button variant="primary">
-          <Link to="/" className="text-light">
+          <Link to="/" className="text-light text-decoration-none">
             Back to Home
           </Link>
         </Button>

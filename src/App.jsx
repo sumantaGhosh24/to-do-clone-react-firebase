@@ -1,9 +1,9 @@
-import React, {useContext} from "react";
+import React from "react";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-import {AuthContext} from "./context/AuthContext";
+import {useFirebase} from "./firebase/AuthContext";
 import {
   Home,
   Login,
@@ -16,14 +16,14 @@ import {
 } from "./pages";
 
 export const App = () => {
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
 
   const RequireAuth = ({children}) => {
-    return currentUser ? children : <Navigate to="/login" />;
+    return firebase.authUser ? children : <Navigate to="/login" />;
   };
 
   const GuestAuth = ({children}) => {
-    return currentUser ? <Navigate to="/" /> : children;
+    return firebase.authUser ? <Navigate to="/" /> : children;
   };
 
   return (

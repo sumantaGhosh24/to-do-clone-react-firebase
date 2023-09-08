@@ -1,18 +1,16 @@
-import {doc, getDoc} from "firebase/firestore";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
+import {doc, onSnapshot} from "firebase/firestore";
 
-import {db} from "../firebase";
+import {db} from "../firebase/firebase";
 
 const LabelBadge = ({id}) => {
   const [label, setLabel] = useState({});
 
   useEffect(() => {
     const unsubscribe = async () => {
-      const docRef = doc(db, "labels", id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
+      onSnapshot(doc(db, "labels", id), (docSnap) => {
         setLabel({id: docSnap.id, ...docSnap.data()});
-      }
+      });
     };
     return () => {
       unsubscribe();

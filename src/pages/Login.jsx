@@ -1,38 +1,39 @@
-import {useContext, useEffect, useState} from "react";
-import {signInWithEmailAndPassword} from "firebase/auth";
+import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {Container, Row, Form, Col, Button} from "react-bootstrap";
 
-import {auth} from "../firebase";
-import {AuthContext} from "../context/AuthContext";
+import {useFirebase} from "../firebase/AuthContext";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const isEmpty = !email || !password;
-
-  const navigate = useNavigate();
-
-  const {dispatch} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "ToDo Clone - Login";
   }, []);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        dispatch({type: "LOGIN", payload: user});
+  const navigate = useNavigate();
+  const firebase = useFirebase();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      if (!email || !password) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await firebase.signIn(email, password);
+        setLoading(false);
         navigate("/");
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
+      }
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,7 +59,9 @@ const Login = () => {
                   placeholder="Enter your email address"
                   onChange={(e) => setEmail(e.target.value)}
                   id="email"
-                ></Form.Control>
+                  name="email"
+                  required
+                />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label htmlFor="password">
@@ -69,15 +72,18 @@ const Login = () => {
                   placeholder="Enter your password"
                   onChange={(e) => setPassword(e.target.value)}
                   id="password"
-                ></Form.Control>
+                  name="password"
+                  required
+                />
               </Form.Group>
-              <Button variant="primary" type="submit" disabled={isEmpty}>
-                <i className="bi bi-people fs-4"></i> Login
+              <Button variant="primary" type="submit" disabled={loading}>
+                <i className="bi bi-people fs-4"></i>{" "}
+                {loading ? "Please Wait..." : "Login"}
               </Button>
               {error && (
                 <p
                   className="mt-4 text-danger text-center text-uppercase fw-bold p-1 rounded fs-6 font-monospace"
-                  style={{backgroundColor: "#3a9191"}}
+                  style={{backgroundColor: "#ea9191"}}
                 >
                   {error}
                 </p>

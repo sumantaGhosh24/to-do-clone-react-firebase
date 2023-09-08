@@ -1,3 +1,4 @@
+import {useState, useEffect} from "react";
 import {
   collection,
   doc,
@@ -9,28 +10,25 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import React, {useState, useContext, useEffect} from "react";
 import {Button, Form, Modal} from "react-bootstrap";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const UpdateProject = ({id}) => {
   const [show, setShow] = useState(false);
   const [data, setData] = useState({});
   const [error, setError] = useState("");
   const [labels, setLabels] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
-
-  const isMatch =
-    !data.title || !data.description || !data.label || !data.color;
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = () => {
       const q = query(
         collection(db, "labels"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         orderBy("timestamp")
       );
       onSnapshot(q, (querySnapshot) => {
@@ -44,7 +42,7 @@ const UpdateProject = ({id}) => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = async () => {
@@ -70,18 +68,27 @@ const UpdateProject = ({id}) => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await updateDoc(
-        doc(db, "projects", data.id),
-        {
-          ...data,
-          timestamp: serverTimestamp(),
-          favorite: data.favorite === "true" ? true : false,
-        },
-        {merge: true}
-      );
-      setShow(false);
+      setLoading(true);
+      if (!data.title || !data.description || !data.label || !data.color) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await updateDoc(
+          doc(db, "projects", data.id),
+          {
+            ...data,
+            timestamp: serverTimestamp(),
+            favorite: data.favorite === "true" ? true : false,
+          },
+          {merge: true}
+        );
+        setLoading(false);
+        setShow(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -105,7 +112,9 @@ const UpdateProject = ({id}) => {
                 placeholder="Enter project title"
                 onChange={handleInput}
                 id="title"
+                name="title"
                 value={data.title}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -117,7 +126,9 @@ const UpdateProject = ({id}) => {
                 placeholder="Enter project description"
                 onChange={handleInput}
                 id="description"
+                name="description"
                 value={data.description}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -128,14 +139,22 @@ const UpdateProject = ({id}) => {
                 type="color"
                 onChange={handleInput}
                 id="color"
+                name="color"
                 value={data.color}
+                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label htmlFor="label">
                 <i className="bi bi-tag fs-4 me-2"></i> Label
               </Form.Label>
-              <Form.Select id="label" onChange={handleInput} value={data.label}>
+              <Form.Select
+                id="label"
+                name="label"
+                onChange={handleInput}
+                value={data.label}
+                required
+              >
                 <option value="default">No Label</option>
                 {labels.map((item, index) => (
                   <option value={item.id} key={index}>
@@ -150,8 +169,10 @@ const UpdateProject = ({id}) => {
               </Form.Label>
               <Form.Select
                 id="favorite"
+                name="favorite"
                 onChange={handleInput}
                 value={data.favorite}
+                required
               >
                 <option value={true}>Favorite</option>
                 <option value={false}>Not Favorite</option>
@@ -160,10 +181,11 @@ const UpdateProject = ({id}) => {
             <Button
               variant="primary"
               type="submit"
-              disabled={isMatch}
+              disabled={loading}
               className="me-3"
             >
-              <i className="bi bi-tag-fill fs-4 me-2"></i> Update Project
+              <i className="bi bi-tag-fill fs-4 me-2"></i>{" "}
+              {loading ? "Please Wait..." : "Update Project"}
             </Button>
             <Button variant="danger" onClick={handleClose}>
               <i className="bi bi-trash3-fill fs-4 me-2"></i> Close

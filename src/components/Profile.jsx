@@ -1,23 +1,34 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {doc, onSnapshot} from "firebase/firestore";
 import {Button, Card} from "react-bootstrap";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Profile = () => {
   const [user, setUser] = useState({});
 
-  const {currentUser, dispatch} = useContext(AuthContext);
+  const firebase = useFirebase();
+
+  const handleLogout = async () => {
+    try {
+      await firebase.handleLogout();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-      setUser(doc.data());
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "users", firebase.authUser),
+      (doc) => {
+        setUser(doc.data());
+      }
+    );
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   return (
     <Card style={{marginBottom: "50px"}} className="shadow-lg">
@@ -60,7 +71,7 @@ const Profile = () => {
           <span className="fw-bold">Register Date : </span>
           {new Date(user.timestamp?.seconds * 1000).toString()}
         </Card.Text>
-        <Button variant="danger" onClick={() => dispatch({type: "LOGOUT"})}>
+        <Button variant="danger" onClick={handleLogout}>
           <i className="bi bi-box-arrow-right fs-4 me-2"></i>
           Logout
         </Button>

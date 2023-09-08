@@ -1,3 +1,4 @@
+import {useEffect, useState} from "react";
 import {
   collection,
   doc,
@@ -7,15 +8,18 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import React, {useContext, useEffect, useState} from "react";
 import {Button, Card, Col, Container, Row, Table} from "react-bootstrap";
 import {useNavigate, useParams} from "react-router-dom";
 
 import {PrimaryNavbar, Sidebar, TopAlert} from "../components";
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Label = () => {
+  useEffect(() => {
+    document.title = "ToDo Clone - Label";
+  }, []);
+
   const [label, setLabel] = useState({});
   const [project, setProject] = useState([]);
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -23,11 +27,7 @@ const Label = () => {
   const navigate = useNavigate();
   const {labelId} = useParams();
 
-  const {currentUser} = useContext(AuthContext);
-
-  useEffect(() => {
-    document.title = "ToDo Clone - Label";
-  }, []);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = async () => {
@@ -38,14 +38,14 @@ const Label = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [labelId]);
 
   useEffect(() => {
     const unsubscribe = () => {
       const q = query(
         collection(db, "projects"),
         where("label", "==", labelId),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         orderBy("timestamp")
       );
       onSnapshot(q, (querySnapshot) => {
@@ -59,7 +59,7 @@ const Label = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser, labelId]);
 
   return (
     <>
@@ -86,7 +86,7 @@ const Label = () => {
           <i className="bi bi-list"></i>
         )}
       </Button>
-      {label.user === currentUser.uid ? (
+      {label.user === firebase.authUser ? (
         <>
           <Container className="mt-4">
             <Row className="mb-5">

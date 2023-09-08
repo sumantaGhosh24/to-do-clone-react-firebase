@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {
   collection,
   deleteDoc,
@@ -13,8 +13,8 @@ import {
 import {Button, Col, Container, Row, Table} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 import {
   AddProject,
   LabelBadge,
@@ -25,44 +25,23 @@ import {
 } from "../components";
 
 const Projects = () => {
-  const [project, setProject] = useState([]);
-  const [labels, setLabels] = useState([]);
-  const [error, setError] = useState("");
-  const [openSidebar, setOpenSidebar] = useState(false);
-
-  const {currentUser} = useContext(AuthContext);
-
-  const navigate = useNavigate();
-
   useEffect(() => {
     document.title = "ToDo Clone - Projects";
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = async () => {
-      const q = query(
-        collection(db, "labels"),
-        where("user", "==", currentUser.uid),
-        orderBy("timestamp")
-      );
-      onSnapshot(q, (querySnapshot) => {
-        let labels = [];
-        querySnapshot.forEach((doc) => {
-          labels.push({id: doc.id, ...doc.data()});
-          setLabels(labels);
-        });
-      });
-    };
-    return () => {
-      unsubscribe();
-    };
-  }, [currentUser.uid]);
+  const [project, setProject] = useState([]);
+  const [error, setError] = useState("");
+  const [openSidebar, setOpenSidebar] = useState(false);
+
+  const firebase = useFirebase();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = async () => {
       const q = query(
         collection(db, "projects"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         orderBy("timestamp")
       );
       onSnapshot(q, (querySnapshot) => {
@@ -84,7 +63,7 @@ const Projects = () => {
       const q1 = query(
         collection(db, "tasks"),
         where("projectId", "==", id),
-        where("user", "==", currentUser.uid)
+        where("user", "==", firebase.authUser)
       );
       const querySnapshot1 = await getDocs(q1);
       if (!querySnapshot1.empty) {
@@ -130,7 +109,7 @@ const Projects = () => {
           <AddProject />
         </Row>
         <Row>
-          <Col md={{span: 10, offset: 1}}>
+          <Col>
             <Table striped>
               <thead>
                 <tr>

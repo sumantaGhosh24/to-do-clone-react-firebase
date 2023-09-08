@@ -1,3 +1,4 @@
+import {useEffect, useState} from "react";
 import {
   addDoc,
   collection,
@@ -7,25 +8,31 @@ import {
   serverTimestamp,
   where,
 } from "firebase/firestore";
-import React, {useContext, useEffect, useState} from "react";
 import {Button, Col, Form, Modal} from "react-bootstrap";
 
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const AddProject = () => {
   const [show, setShow] = useState(false);
-  const [data, setData] = useState({favorite: false});
+  const [data, setData] = useState({
+    favorite: false,
+    title: "",
+    description: "",
+    color: "",
+    label: "",
+  });
   const [labels, setLabels] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = () => {
       const q = query(
         collection(db, "labels"),
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         orderBy("timestamp")
       );
       onSnapshot(q, (querySnapshot) => {
@@ -39,7 +46,7 @@ const AddProject = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -49,27 +56,46 @@ const AddProject = () => {
     setData({...data, [id]: value});
   };
 
-  const isMatch =
-    !data.title || !data.description || !data.label || !data.color;
-
   const addProject = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, "projects"), {
-        ...data,
-        favorite: data.favorite === "true" ? true : false,
-        timestamp: serverTimestamp(),
-        user: currentUser.uid,
-      });
-      setShow(false);
+      setLoading(true);
+      if (
+        !data.title ||
+        !data.description ||
+        !data.color ||
+        !data.label ||
+        !data.favorite
+      ) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await addDoc(collection(db, "projects"), {
+          ...data,
+          favorite: data.favorite === "true" ? true : false,
+          timestamp: serverTimestamp(),
+          user: firebase.authUser,
+        });
+        setData({
+          favorite: false,
+          title: "",
+          description: "",
+          color: "",
+          label: "",
+        });
+        setLoading(false);
+        setShow(false);
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <Col sm={{span: 8, offset: 4}}>
+      <Col>
         <Button variant="primary" onClick={handleShow}>
           <i className="bi bi-plus-lg me-2"></i> Create a Project
         </Button>
@@ -88,6 +114,9 @@ const AddProject = () => {
                   placeholder="Enter project title"
                   onChange={handleInput}
                   id="title"
+                  name="title"
+                  value={data.title}
+                  required
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -99,19 +128,35 @@ const AddProject = () => {
                   placeholder="Enter project description"
                   onChange={handleInput}
                   id="description"
+                  name="description"
+                  value={data.description}
+                  required
                 />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label htmlFor="color">
                   <i className="bi bi-palette fs-4 me-2"></i> Color
                 </Form.Label>
-                <Form.Control type="color" onChange={handleInput} id="color" />
+                <Form.Control
+                  type="color"
+                  onChange={handleInput}
+                  id="color"
+                  name="color"
+                  value={data.color}
+                  required
+                />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label htmlFor="label">
                   <i className="bi bi-tag fs-4 me-2"></i> Label
                 </Form.Label>
-                <Form.Select id="label" onChange={handleInput}>
+                <Form.Select
+                  id="label"
+                  name="label"
+                  value={data.label}
+                  onChange={handleInput}
+                  required
+                >
                   <option value="default">No Label</option>
                   {labels.map((item, index) => (
                     <option value={item.id} key={index}>
@@ -120,11 +165,17 @@ const AddProject = () => {
                   ))}
                 </Form.Select>
               </Form.Group>
-              <Form.Group className="mb-3 d-flex">
+              <Form.Group className="mb-3">
                 <Form.Label htmlFor="label">
                   Make this project favorite
                 </Form.Label>
-                <Form.Select id="favorite" onChange={handleInput}>
+                <Form.Select
+                  id="favorite"
+                  name="favorite"
+                  value={data.favorite}
+                  onChange={handleInput}
+                  required
+                >
                   <option value={true}>Favorite</option>
                   <option value={false}>Not Favorite</option>
                 </Form.Select>
@@ -132,10 +183,11 @@ const AddProject = () => {
               <Button
                 variant="primary"
                 type="submit"
-                disabled={isMatch}
+                disabled={loading}
                 className="me-2"
               >
-                <i className="bi bi-folder fs-4 me-2"></i>Add Project
+                <i className="bi bi-folder fs-4 me-2"></i>
+                {loading ? "Please Wait..." : "Add Project"}
               </Button>
               <Button variant="danger" onClick={handleClose}>
                 <i className="bi bi-trash3-fill fs-4 me-2"></i> Close

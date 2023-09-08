@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {collection, getDocs, query, where} from "firebase/firestore";
 import {Button, Col, Container, Row} from "react-bootstrap";
 
@@ -9,26 +9,26 @@ import {
   Profile,
   TopAlert,
 } from "../components";
-import {AuthContext} from "../context/AuthContext";
-import {db} from "../firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {db} from "../firebase/firebase";
 
 const Home = () => {
+  useEffect(() => {
+    document.title = "ToDo Clone - Home";
+  }, []);
+
   const [project, setProject] = useState(0);
   const [favoriteProject, setFavoriteProject] = useState(0);
   const [labels, setLabels] = useState(0);
   const [error, setError] = useState("");
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  const {currentUser} = useContext(AuthContext);
-
-  useEffect(() => {
-    document.title = "ToDo Clone - Home";
-  }, []);
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = async () => {
       const projectRef = collection(db, "projects");
-      const q = query(projectRef, where("user", "==", currentUser.uid));
+      const q = query(projectRef, where("user", "==", firebase.authUser));
       const querySnapshot = await getDocs(q);
       let list = [];
       querySnapshot.forEach(
@@ -44,14 +44,14 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = async () => {
       const projectsRef = collection(db, "projects");
       const q = query(
         projectsRef,
-        where("user", "==", currentUser.uid),
+        where("user", "==", firebase.authUser),
         where("favorite", "==", true)
       );
       const querySnapshot = await getDocs(q);
@@ -69,12 +69,12 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = async () => {
       const labelRef = collection(db, "labels");
-      const q = query(labelRef, where("user", "==", currentUser.uid));
+      const q = query(labelRef, where("user", "==", firebase.authUser));
       const querySnapshot = await getDocs(q);
       let list = [];
       querySnapshot.forEach(
@@ -90,7 +90,7 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   return (
     <>
@@ -118,7 +118,7 @@ const Home = () => {
         )}
       </Button>
       {error && <TopAlert message={error} />}
-      <Container className="mt-4">
+      <Container className="mt-5">
         <Row>
           <Col md="6">
             <Profile />

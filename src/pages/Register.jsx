@@ -1,94 +1,71 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {doc, serverTimestamp, setDoc} from "firebase/firestore";
-import {createUserWithEmailAndPassword} from "firebase/auth";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {Button, Col, Container, Form, Image, Row} from "react-bootstrap";
 
-import {auth, db, storage} from "../firebase";
+import {db} from "../firebase/firebase";
+import {useFirebase} from "../firebase/AuthContext";
+import {uploadImage} from "../firebase/storage";
 
 const Register = () => {
-  const [file, setFile] = useState("");
-  const [data, setData] = useState({});
-  const [error, setError] = useState("");
-  const [per, setPer] = useState(null);
-
-  const navigate = useNavigate();
-
   useEffect(() => {
     document.title = "ToDo Clone - Register";
   }, []);
 
-  useEffect(() => {
-    const uploadFile = () => {
-      const name = new Date().getTime() + file.name;
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState("");
+  const [data, setData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    address: "",
+    country: "",
+  });
+  const [error, setError] = useState(null);
 
-      const storageRef = ref(storage, name);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setPer(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("upload is paused");
-              break;
-            case "running":
-              console.log("upload is running");
-              break;
-            default:
-              break;
-          }
-        },
-        (error) => {
-          setError(error.message);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setData((prev) => ({...prev, img: downloadURL}));
-          });
-        }
-      );
-    };
-    file && uploadFile();
-  }, [file]);
-
-  console.log(`upload is ${per || "not"} running`);
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   const handleInput = (e) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
 
-  const isMatch =
-    !data.username ||
-    !data.name ||
-    !data.email ||
-    !data.phone ||
-    !data.password ||
-    !data.address ||
-    !data.country;
-
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      const obj = {...data};
-      delete obj.password;
-      await setDoc(doc(db, "users", res.user.uid), {
-        ...obj,
-        timestamp: serverTimestamp(),
-      });
-      navigate("/login");
+      setLoading(true);
+      if (
+        !data.username ||
+        !data.name ||
+        !data.email ||
+        !data.phone ||
+        !data.password ||
+        !data.address ||
+        !data.country ||
+        !file.name
+      ) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        const imageUrl = await uploadImage(file, "users", setError);
+        const res = await firebase.signUp(data.email, data.password);
+        const obj = {...data, imageUrl};
+        delete obj.password;
+        await setDoc(doc(db, "users", res.user.uid), {
+          ...obj,
+          timestamp: serverTimestamp(),
+        });
+        setLoading(false);
+        navigate("/");
+      }
     } catch (error) {
+      console.log(error.message);
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -138,6 +115,8 @@ const Register = () => {
                       placeholder="Enter your username"
                       onChange={handleInput}
                       id="username"
+                      name="username"
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -151,6 +130,8 @@ const Register = () => {
                       placeholder="Enter your full name"
                       onChange={handleInput}
                       id="name"
+                      name="name"
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -166,6 +147,8 @@ const Register = () => {
                       placeholder="Enter your email address"
                       onChange={handleInput}
                       id="email"
+                      name="email"
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -179,6 +162,8 @@ const Register = () => {
                       placeholder="Enter your phone number"
                       onChange={handleInput}
                       id="phone"
+                      name="phone"
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -192,6 +177,8 @@ const Register = () => {
                   placeholder="Enter your password"
                   onChange={handleInput}
                   id="password"
+                  name="password"
+                  required
                 />
               </Form.Group>
               <Row>
@@ -205,6 +192,8 @@ const Register = () => {
                       placeholder="Enter your address"
                       onChange={handleInput}
                       id="address"
+                      name="address"
+                      required
                     />
                   </Form.Group>
                 </Col>
@@ -218,12 +207,15 @@ const Register = () => {
                       placeholder="Enter your country"
                       onChange={handleInput}
                       id="country"
+                      name="country"
+                      required
                     />
                   </Form.Group>
                 </Col>
               </Row>
-              <Button variant="primary" type="submit" disabled={isMatch}>
-                <i className="bi bi-people fs-4"></i> Register
+              <Button variant="primary" type="submit" disabled={loading}>
+                <i className="bi bi-people fs-4"></i>{" "}
+                {loading ? "Please Wait..." : "Register"}
               </Button>
               {error && (
                 <p
