@@ -51,7 +51,7 @@ const Register = () => {
         setError("Please fill all the fields.");
       } else {
         setError(null);
-        const imageUrl = await uploadImage(file, "users", setError);
+        const imageUrl = await uploadImage(file, "users");
         const res = await firebase.signUp(data.email, data.password);
         const obj = {...data, imageUrl};
         delete obj.password;
