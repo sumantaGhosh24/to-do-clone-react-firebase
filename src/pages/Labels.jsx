@@ -146,14 +146,14 @@ const Labels = () => {
                     <td>
                       <Button
                         variant="success"
-                        className="me-2 mb-2"
+                        className="me-2"
                         onClick={() => navigate(`/labels/${item.id}`)}
                       >
                         <i className="bi bi-eye"></i>
                       </Button>
                       <Button
                         variant="danger"
-                        className="me-2 mb-2"
+                        className="me-2"
                         onClick={() => handleDelete(item.id)}
                       >
                         <i className="bi bi-archive"></i>

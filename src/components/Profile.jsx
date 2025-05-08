@@ -35,8 +35,8 @@ const Profile = () => {
       <Card.Img
         variant="top"
         src={
-          user.img
-            ? user.img
+          user.imageUrl
+            ? user.imageUrl
             : "https://icon-library.com/images/no-image-icon/no-image-icon-0.jpg"
         }
         style={{height: "250px"}}
