@@ -67,6 +67,8 @@ const Project = () => {
     };
   }, [firebase.authUser, projectId]);
 
+  console.log(project);
+
   return (
     <>
       <PrimaryNavbar />
